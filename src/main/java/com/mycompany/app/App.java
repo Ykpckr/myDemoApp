@@ -1,4 +1,19 @@
 package com.mycompany.app;
+import java.util.Scanner;
+
+
+import static spark.Spark.get;
+import static spark.Spark.port;
+import static spark.Spark.post;
+
+
+import java.util.HashMap;
+import java.util.Map;
+
+import spark.ModelAndView;
+import spark.template.mustache.MustacheTemplateEngine;
+
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,19 +50,62 @@ public class App
 
     // Example usage
     public static void main(String[] args) {
-        List<Integer> points1 = new ArrayList<Integer>();
-        points1.add(1);
-        points1.add(2);
-        points1.add(3);
-        points1.add(4);
-        List<Integer> points2 = new ArrayList<Integer>();
-        points2.add(4);
-        points2.add(5);
-        points2.add(6);
-        points2.add(1);
-        int threshold1 = 2;
-        int threshold2 = 3;
-        double averageDistance = computeAverageDistance(points1, points2, threshold1, threshold2);
-        System.out.println("Average distance: " + averageDistance);
+        port(getHerokuAssignedPort());
+
+        get("/", (req, res) -> "Hello, World");
+
+        post("/compute", (req, res) -> {
+            // İlk liste için parametreleri ayrıştır
+            String input1 = req.queryParams("input1");
+            Scanner sc1 = new Scanner(input1);
+            sc1.useDelimiter("[;\r\n]+");
+            ArrayList<Integer> inputList1 = new ArrayList<>();
+            while (sc1.hasNext()) {
+                int value = Integer.parseInt(sc1.next().replaceAll("\\s", ""));
+                inputList1.add(value);
+            }
+            sc1.close();
+
+            // İkinci liste için parametreleri ayrıştır
+            String input2 = req.queryParams("input2");
+            Scanner sc2 = new Scanner(input2);
+            sc2.useDelimiter("[;\r\n]+");
+            ArrayList<Integer> inputList2 = new ArrayList<>();
+            while (sc2.hasNext()) {
+                int value = Integer.parseInt(sc2.next().replaceAll("\\s", ""));
+                inputList2.add(value);
+            }
+            sc2.close();
+
+            // Eşik değerlerini ayrıştır
+            int threshold1 = Integer.parseInt(req.queryParams("threshold1"));
+            int threshold2 = Integer.parseInt(req.queryParams("threshold2"));
+
+            // computeAverageDistance metodunu çağır
+            double result = App.computeAverageDistance(inputList1, inputList2, threshold1, threshold2);
+
+            Map map = new HashMap();
+            map.put("result", result);
+            return new ModelAndView(map, "compute.mustache");
+        }, new MustacheTemplateEngine());
+
+
+
+        get("/compute",
+                (rq, rs) -> {
+                    Map map = new HashMap();
+                    map.put("result", "not computed yet!");
+                    return new ModelAndView(map, "compute.mustache");
+                },
+                new MustacheTemplateEngine());
+    }
+
+    static int getHerokuAssignedPort() {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        if (processBuilder.environment().get("PORT") != null) {
+            return Integer.parseInt(processBuilder.environment().get("PORT"));
+        }
+        return 4567; //return default port if heroku-port isn't set (i.e. on localhost)
     }
 }
+
