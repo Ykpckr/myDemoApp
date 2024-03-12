@@ -19,3 +19,5 @@ Testler, fonksiyonun farklı senaryolarda doğru çalışıp çalışmadığın�
 Farklı boyutlu listeler
 Eşik değerlerinin altında kalan elemanlar
 Beklenen ve gerçek sonuçların karşılaştırılması
+
+https://app.travis-ci.com/Ykpckr/myDemoApp.svg?token=4jpCSXBubdyxjYT51irx&branch=master
